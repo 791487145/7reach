@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\AutoHandleCoupon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,8 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
+        //每天处理优惠券过期
+        $schedule->job(new AutoHandleCoupon())->daily();
 
     }
 

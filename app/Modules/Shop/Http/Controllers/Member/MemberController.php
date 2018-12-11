@@ -6,9 +6,11 @@
  * Time: 9:33 AM
  */
 namespace  App\Modules\Shop\Http\Controllers\Member;
+use App\Http\Controllers\BaiscController;
 use App\Http\Controllers\ShopBascController;
 use App\Model\CouponTemplate;
 use App\Model\MemberCenterDecoration;
+use App\Model\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -26,7 +28,17 @@ class MemberController extends ShopBascController{
     /*
      * 我的订单
      */
-    public function myOrder(Request $request){
+    public function myOrder(Request $request,Order $order){
+        $where=array(
+            'page'=>$request->input('page',1),
+            'limit'=>$request->input('limit',BaiscController::LIMIT),
+            'buyer_id'=>$this->member->member_id,
+            'order_state'=>$request->input('order_state',Order::ORDER_STATUS_NOT_PAY),
+        );
+        $order_list=Order::order($order,$where,$this->company_id);
+        $data['order_count']=$order_list->count();
+        $data['order_list']=$order_list;
+        return $this->success($data);
 
     }
     /*

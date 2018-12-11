@@ -203,16 +203,19 @@ class Order extends Eloquent
         if(!empty($param['order_type'])){
             $orders = $orders->whereOrderType($param['order_type']);
         }
-
-        $orders = $orders->select('order_id','order_sn','add_time','order_state','order_type','payment_code','shipping_type','order_amount','order_flag')
+        if(!empty($param['buyer_id'])){
+            $order=$orders->whereBuyerId($param['buyer_id']);
+        }
+        $orders = $orders->select('order_id','order_sn','add_time','order_state','order_type','payment_code','shipping_type','order_amount','order_flag','shipping_code','shipping_fee')
             ->forPage($param['page'],$param['limit'])->withTrashed()->get();
 
         foreach ($orders as $order){
             if($order->order_flag == self::ORDER_FLAG_SHOP){
-                $order->goods = $order->shop_goods()->select('goods_name','goods_num')->get();
+                $order->goods = $order->shop_goods()->select('goods_name','goods_num','goods_image')->get();
             }else{
                 $order->goods = $order->store_goods()->select('goods_name','goods_num')->get();
             }
+            $order->goods_count=$order->goods->count();
             $order = self::orderCN($order);
         }
 

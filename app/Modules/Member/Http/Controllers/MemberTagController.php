@@ -18,8 +18,15 @@ class MemberTagController extends BaiscController{
      * 会员标签列表
      */
     public function list(Request $request){
-        $list=MemberTag::where('company_id',$this->company_id)->
-        forPage($request->input('page',1),$request->input('limit',10))->get();
+        $page=$request->input('page',1);
+        $limit=$request->input('limit');
+        if(empty($limit)){
+            $list=MemberTag::where('company_id',$this->company_id)->get();
+        }else{
+            $list=MemberTag::where('company_id',$this->company_id)->
+            forPage($page,$limit)->get();
+
+        }
         $data['tag_count']=$list->count();
         $data['memberTags']=$list;
         return $this->success($data);
