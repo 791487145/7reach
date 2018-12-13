@@ -33,7 +33,7 @@ class MemberController extends ShopBascController{
             'page'=>$request->input('page',1),
             'limit'=>$request->input('limit',BaiscController::LIMIT),
             'buyer_id'=>$this->member->member_id,
-            'order_state'=>$request->input('order_state',Order::ORDER_STATUS_NOT_PAY),
+            'order_state'=>$request->input('order_state'),
         );
         $order_list=Order::order($order,$where,$this->company_id);
         $data['order_count']=$order_list->count();

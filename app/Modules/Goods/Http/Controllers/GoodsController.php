@@ -6,6 +6,7 @@
  * Time: 12:58
  */
 namespace App\Modules\Goods\Http\Controllers;
+use App\Events\GoodsChange;
 use App\Http\Controllers\BaiscController;
 use App\Model\Goods;
 use App\Model\GoodsGroup;
@@ -315,6 +316,8 @@ class GoodsController extends BaiscController
                 $goods->find($goods_id)->storeGoods->each(function ($item,$key){
                     $item->update(['goods_state'=>0]);
                 });
+                //调用事件清空购物车无效数据
+                event(new GoodsChange($goods->find($goods_id)));
                 return $this->message('操作成功');
             }
         }
@@ -339,6 +342,7 @@ class GoodsController extends BaiscController
                 $goods->updateBatch($good_list->toArray());
                 return $this->message('修改分类成功');
             }elseif($flag=='delete'){//删除商品
+                event(new GoodsChange(null,$goods->find($goods_ids)));
                 $goods->destroy($goods_ids);
                 return $this->message('删除成功');
             }else{//下架
@@ -355,6 +359,8 @@ class GoodsController extends BaiscController
                         $item->update(['goods_state'=>0]);
                     });
                 });
+                //调用事件清空购物车无效数据
+                event(new GoodsChange(null,$good_list));
                 return $this->message('下架成功');
             }
 
@@ -369,6 +375,10 @@ class GoodsController extends BaiscController
         $shop_goods_ids=explode(',',$request->input('shop_goods_id'));
         if(is_array($shop_goods_ids)){
             if($flag=='delete'){//删除商品
+                $goods=Goods::whereHas('shopGoods',function ($query) use($shop_goods_ids){
+                    $query->whereIn('shop_goods_id',$shop_goods_ids);
+                })->get();
+                event(new GoodsChange(null,$goods));
                 $shopGood->destroy($shop_goods_ids);
                 return $this->message('删除成功');
             }

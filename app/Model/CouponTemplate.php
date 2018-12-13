@@ -74,7 +74,7 @@ class CouponTemplate extends Eloquent
         }
         $list=$this->where($where)->forPage($request->input('page',1),$request->input('limit',10))->get();
         $list->each(function ($item,$key){
-            $item->coupon_t_state=$item->coupon_t_state?'有效':'过期';
+            $item->coupon_t_state=$item->coupon_t_state==1?'有效':'过期';
             $item->use_range=$item->use_range==1?"全部店铺":'指定店铺';
             $limit=$item->coupon_t_limit?"订单满{$item->coupon_t_limit}元,":'无门槛,';
             $item->pre_content="{$limit}减免金额：{$item->coupon_t_price}元";

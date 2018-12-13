@@ -10,12 +10,14 @@ use App\Http\Controllers\ShopBascController;
 use App\Model\CouponShop;
 use App\Model\MAddress;
 use App\Model\MCoupon;
+use App\Model\Order;
 use App\Model\ShopCart;
 use App\Model\ShopGood;
 use App\Model\WebShop;
 use App\Modules\Shop\Requests\OrderRequest;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Log;
@@ -87,5 +89,55 @@ class OrderController extends ShopBascController{
 
         return $orderService->store($request->user('member'), $address, $request->input('order_message'), $request->input('cart_id'), $coupon,$this->company_id,$this->shop_id);
     }
+    /*
+     * 订单详情
+     */
+    public function orderDetail(Request $request,Order $order){
+            $order_id=$request->input('order_id');
+            if(!$order_id){
+                return $this->failed('订单id不能为空');
+            }
+            $order_info=$order->with(['shop_goods'=>function($query){
+                $query->select(['order_id','shop_goods_id','goods_name','goods_price','goods_num','goods_image','goods_pay_price','goods_type','promotions_id']);
+            }])->find($order_id);
+            if(empty($order_info)){
+                return $this->failed('无效数据');
+            }
+            $order_info = Order::orderCN($order_info);
+            $data=$order->orderDetail($order_info);
 
+
+
+        return $this->success($data);
+    }
+    /*
+     * 取消订单
+     */
+    public function orderClose(Request $request){
+        $order_id=$request->input('order_id');
+        if(!$order_id){
+            return $this->failed('订单id不能为空');
+        }
+        $order=Order::find($order_id);
+        if(!$order){
+            return $this->failed('无效数据');
+        }
+        if($order->closeOrder()){
+            return $this->message('取消订单成功');
+        }
+        return $this->failed('取消订单失败');
+    }
+    /*
+     * 收货
+     */
+    public function received(Request $request){
+        $order=Order::find($request->input('order_id',0));
+        if(!$order){
+            return $this->failed('无效数据');
+        }
+        if($order->received()){
+            return $this->message('收货成功');
+        }
+        return $this->failed('收货失败');
+    }
 }

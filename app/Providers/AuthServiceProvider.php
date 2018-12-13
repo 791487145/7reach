@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Model\CouponTemplate;
+use App\Model\Member;
 use App\Policies\CservicePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -28,5 +29,6 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         //
+
     }
 }

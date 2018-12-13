@@ -262,6 +262,7 @@ class Member extends Authenticatable implements  JWTSubject
         );
         $this->coupons()->attach($coupon_info->coupon_t_id,$data);
         $this->coupons()->decrement('coupon_t_total',1);
+        $this->coupons()->increment('coupon_t_giveout',1);
     }
     /*
      * 获取优惠券编码

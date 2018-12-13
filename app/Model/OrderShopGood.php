@@ -54,7 +54,7 @@ class OrderShopGood extends Eloquent
 		'shop_goods_id' => 'int',
 		'goods_price' => 'float',
 		'goods_num' => 'int',
-		'goods_pay_price' => 'float',
+		'goods_pay_price' => 'float(10,2)',
 		'shop_id' => 'int',
 		'buyer_id' => 'int',
 		'promotions_id' => 'int',

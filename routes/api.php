@@ -23,6 +23,7 @@ Route::prefix('upload')->group(function(){
     Route::post('goods','UploadController@goodsPicUpload')->name('uploadGoods');
     Route::post('delete','UploadController@fileDelete')->name('uploadDelete');
     Route::post('store', 'UploadController@storeLogo');
+    Route::post('member', 'UploadController@memberPicUpload');
     Route::post('company', 'UploadController@companyAvater');
 });
 

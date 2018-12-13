@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Model\CouponTemplate;
+use App\Model\MCoupon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -39,6 +40,8 @@ class AutoHandleCoupon implements ShouldQueue
         }
         $this->coupon->each(function ($item,$key){
             $item->update(['coupon_t_state'=>2]);
+            MCoupon::where(['coupon_t_id'=>$item->coupon_t_id,'coupon_state'=>1])->update(['coupon_state'=>3]);
         });
+
     }
 }

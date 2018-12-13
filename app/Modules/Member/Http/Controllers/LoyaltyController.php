@@ -39,7 +39,9 @@ class LoyaltyController extends BaiscController{
             //处理模块功能序列化信息
             $moudle_enable=array('points'=>0, 'predeposit'=>0, 'coupon'=>0);
             if(isset($date['moudle_enable'])){
-                foreach ($date['moudle_enable'] as $value){
+                $moudle_enable_request=explode(',',$date['moudle_enable']);
+                //dd($moudle_enable);
+                foreach ($moudle_enable_request as $value){
                     $moudle_enable[$value]=$value?1:0;
                 }
             }
@@ -47,8 +49,9 @@ class LoyaltyController extends BaiscController{
 
             //处理组件序列化信息
             $element_setting=array('order'=>0,'like'=>0,'message'=>0,'info'=>0,'store'=>0);
-            if(isset($element_setting)){
-                foreach ($date['element_setting'] as $value){
+            if(isset($date['element_setting'])){
+                $element_setting_request=explode(',',$date['element_setting']);
+                foreach ($element_setting_request as $value){
                     $element_setting[$value]=$value?1:0;
                 }
             }

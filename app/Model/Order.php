@@ -7,7 +7,9 @@
 
 namespace App\Model;
 
+use Illuminate\Support\Facades\DB;
 use Reliese\Database\Eloquent\Model as Eloquent;
+use think\Exception;
 
 /**
  * App\Model\Order
@@ -115,20 +117,20 @@ class Order extends Eloquent
 		'shop_id' => 'int',
 		'store_id' => 'int',
 		'buyer_id' => 'int',
-		'add_time' => 'int',
+		'add_time' => 'datetime:Y-m-d H:i',
 		'payment_code' => 'int',
 		'payment_time' => 'int',
-		'finnshed_time' => 'int',
-		'goods_amount' => 'float',
-		'order_amount' => 'float',
-		'pd_amount' => 'float',
+		'finnshed_time' => 'datetime:Y-m-d H:i',
+		'goods_amount' => 'float(10,2)',
+		'order_amount' => 'float(10,2)',
+		'pd_amount' => 'float(10.2)',
 		'shipping_fee' => 'float',
 		'evaluation_state' => 'int',
 		'order_state' => 'int',
 		'refund_state' => 'bool',
 		'lock_state' => 'bool',
-		'refund_amount' => 'float',
-		'delay_time' => 'int',
+		'refund_amount' => 'float(10,2)',
+		'delay_time' => 'datetime:Y-m-d H:i',
 		'shipping_type' => 'int'
 	];
 
@@ -161,7 +163,7 @@ class Order extends Eloquent
 		'shipping_code',
 		'shipping_type'
 	];
-
+    protected $dates = ['delete_at'];
 
     /**
      * 订单列表
@@ -253,7 +255,7 @@ class Order extends Eloquent
     //订单信息扩展
     public function order_common()
     {
-        return $this->hasMany(OrderCommon::class);
+        return $this->hasOne(OrderCommon::class,'order_id','order_id');
     }
     //订单商品
     public function order_shop_goods()
@@ -309,7 +311,10 @@ class Order extends Eloquent
 
         $order_comment = OrderCommon::whereOrderId($order->order_id)->first();
         $order->order_message = $order_comment->order_message;//留言
-
+        $order->coupon='';
+        if($order_comment->coupon_code&&$order_comment->coupon_price){//如果订单使用了优惠卷
+            $order->coupon=array('coupon_price'=>$order_comment->coupon_price);
+        }
         if($order->order_type == self::ORDER_TYPE_PUB){
             $order->order_type_name = '配送';
 
@@ -325,5 +330,80 @@ class Order extends Eloquent
         }
 
         return $order;
+    }
+    /*
+     * 关闭订单
+     */
+    public function closeOrder(){
+        //判断订单是否是未付款
+	    if($this->order_state!=self::ORDER_STATUS_NOT_PAY){
+	        return;
+        }
+
+        DB::beginTransaction();
+	    try{
+            if($this->update(['order_state'=>self::ORDER_STATUS_CANCEL])){
+                if($this->order_flag){//云店商品
+                }else{//旗舰店商品
+                    foreach ($this->shop_goods as $item){
+                        //将商品库存还回去
+                        if(ShopGood::find($item->shop_goods_id)->increment('goods_storage',1)){
+                            //如果使用了优惠券将优惠卷还回去
+                            if($this->order_common->coupon_code){
+                                $mcoupon=MCoupon::where('coupon_code',$this->order_common->coupon_code)->first();
+                                if($mcoupon){
+                                    if($mcoupon->update(['coupon_state'=>1])){
+                                        $mcoupon->coupon_info()->decrement('coupon_t_used',1);
+                                        DB::commit();
+                                        return true;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    throw new \Exception('关闭错误');
+                }
+            }
+        }catch (\Exception $e){
+	        DB::rollBack();
+	        return false;
+        }
+
+    }
+    /*
+     * 订单收货
+     * param $scene场景 1用户 2后台管理
+     */
+    public function received($scene=1){
+
+        if($this->order_state!=self::ORDER_STATUS_SEND){
+            return;
+        }
+
+        $user_info=array('log_user'=>$this->buyer_name,'log_role'=>0);
+        if($scene==2){//后台操作
+            $user_info['log_user']='';
+            $user_info['log_role']=0;
+        }
+        DB::beginTransaction();
+        try{
+            if($this->update(['order_state'=>self::ORDER_STATUS_RECEIVE,'finnshed_time'=>time()])){
+
+                $msg='订单收货';
+                if(OrderLog::create(['order_id'=>$this->order_id,'log_msg'=>$msg,'log_time'=>time()
+                    ,'log_user'=>$user_info['log_user'],'log_role'=>$user_info['log_role'],'log_orderstate'=>self::ORDER_STATUS_RECEIVE])){
+                    DB::commit();
+                    return true;
+                }
+
+            }
+            throw new \Exception('收货错误');
+
+        }catch (\Exception $e){
+            DB::rollBack();
+            return false;
+        }
+
     }
 }

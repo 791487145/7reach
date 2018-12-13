@@ -86,7 +86,12 @@ class MCoupon extends Eloquent
 		'coupon_owner_name',
 		'coupon_order_id'
 	];
-
+	/*
+	 * 优惠券信息
+	 */
+    public function coupon_info(){
+        return $this->hasOne(CouponTemplate::class,'coupon_t_id','coupon_t_id');
+    }
 	//效验是否可以使用
     public function checkAvailable(Member $user, $orderAmount = null)
     {

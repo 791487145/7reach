@@ -8,6 +8,7 @@
 namespace App\Modules\Member\Http\Controllers;
 use App\Http\Controllers\BaiscController;
 use App\Model\MemberGrade;
+use App\Model\MemberTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -52,7 +53,13 @@ class MemberGradeController extends BaiscController{
                     $query->where('company_id',$this->company_id);
                 }),
                 ],
-            'grade_level'=>'required|numeric',
+            'grade_level'=>['required','numeric',function($attribute, $value, $fail){
+                $split_value="VIP".$value;
+                $count=MemberGrade::where(['company_id'=>$this->company_id,'grade_level'=>$split_value])->count();
+                if($count){
+                    $fail('此等级已经存在');
+                }
+            }],
             'grade_exppoints'=>'required|numeric',
             'is_enable'=>'required',
         ],$message);
