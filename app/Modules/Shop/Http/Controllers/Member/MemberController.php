@@ -107,4 +107,15 @@ class MemberController extends ShopBascController{
         }
 
     }
+    /*
+     * 我的卡卷
+     */
+    public function coupon(Request $request){
+        $where=[];
+        if($request->input('coupon_t_state')){
+            $where['coupon_t_state']=$request->input('coupon_t_state');
+        }
+        $m_coupon=$this->member->coupons()->where($where)->get();
+        return $this->success($m_coupon);
+    }
 }

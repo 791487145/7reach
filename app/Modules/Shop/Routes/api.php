@@ -34,6 +34,8 @@ Route::prefix('shop')->group(function() {
             Route::post('message', 'MemberController@myMessage')->name('memberMessage');
             //会员我的资料
             Route::match(['get', 'post'], 'info', 'MemberController@info')->name('memberInfo');
+            //会员我的卡卷
+            Route::post('coupon','MemberController@coupon')->name('memberCoupon');
             //会员领劵
             Route::post('getcoupon', 'MemberController@getCoupon')->name('memberGetCoupon');
             //会员地址分组
